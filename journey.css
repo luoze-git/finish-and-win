@@ -1,0 +1,55 @@
+/* 主页面视觉层；不包含任务、奖励或存储规则。 */
+:root{--ink:#233f39;--muted:#63766e;--line:#cbd5c9;--paper:#f7f7ed;--bg:#e7ece2;--navy:#294e43;--yellow:#e8cc8e;background:var(--bg)}
+body{background:linear-gradient(180deg,#e6efe9 0,#edf0e5 620px,#e2e8dc 100%)}main{max-width:1100px;padding:26px 28px 24px}
+header{margin:0 0 22px}.brand{font-size:18px;letter-spacing:.04em;font-weight:650}.mark{color:#f0dfb1;background:#315346;border-radius:50%;font-size:22px;padding:4px 10px}#sound-toggle{background:transparent;border:1px solid #b8c9bf;border-radius:24px;min-height:44px;font-size:14px;padding:9px 15px}
+.journey{position:relative;height:390px;border-radius:8px 8px 0 0;overflow:hidden;background:#7b9d8d;isolation:isolate}.landscape{position:absolute;width:100%;height:100%;object-fit:cover;object-position:center 52%;z-index:-2;filter:saturate(.8)}.journey:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,#e4efe94d,transparent 50%,#143c3a2b);z-index:-1;pointer-events:none}
+.journey-caption{position:absolute;top:26px;left:30px}.eyebrow{font-size:12px;letter-spacing:.2em;color:#406158}.journey-caption p{font-family:Georgia,"Songti SC","SimSun",serif;font-size:28px;letter-spacing:.07em;margin:10px 0;color:#254d43}
+.wallet{position:absolute;right:28px;top:25px;margin:0;padding:12px 17px;background:#f6f5eac7;color:var(--ink);border:1px solid #ffffff70;border-radius:3px;gap:18px;box-shadow:0 3px 14px #25473808}.wallet p{font-size:12px;letter-spacing:.1em}.amount{gap:7px;margin:2px 0 0}.amount #balance{font-family:Georgia,serif;font-size:30px;font-weight:400;letter-spacing:0}.amount>span:last-child{font-size:12px;color:#526959}.coin{width:auto;height:auto;border:0;outline:0;font-size:22px;color:#92773d;margin:0;transform:none}
+.trail-map{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}.trail-shadow{fill:none;stroke:#3b544b40;stroke-width:8}.trail{fill:none;stroke:#eee5c1;stroke-width:3;stroke-linecap:round;opacity:.95}.trail-progress{fill:none;stroke:#ffdf8c;stroke-width:4;stroke-linecap:round;opacity:0}.marker-halo{fill:#fce3a53d;stroke:#fff8d399;stroke-width:1}.marker-core{fill:#fff2be;stroke:#537061;stroke-width:2}.summit{fill:#fff5d0}.summit-ring{fill:none;stroke:#fff1c580;stroke-width:1}
+.journey-status{position:absolute;left:28px;bottom:40px;font-size:12px;letter-spacing:.1em;color:#fff8df;text-shadow:0 1px 5px #173e37;margin:0}.journey.is-moving .trail-progress{opacity:1}.journey.is-arrived .summit-ring{animation:arrival-ring .8s ease-out both}.journey.is-arrived .marker-halo{fill:#ffe19b85}.journey.is-moving .landscape{filter:saturate(.95);transition:filter 1.8s}
+@keyframes arrival-ring{from{stroke-width:2;stroke:#fff0a9;opacity:1;r:10}to{stroke-width:1;opacity:0;r:36}}
+.task.panel{position:relative;z-index:2;max-width:660px;margin:-23px auto 38px;padding:28px 32px 19px;background:#f8f8efd9;backdrop-filter:blur(14px);border:1px solid #ffffffe0;border-radius:3px;box-shadow:0 9px 24px #2f4e3810}.task:before{content:"";position:absolute;top:0;left:32px;right:32px;height:3px;background:#c7b785}
+.section-head{margin-bottom:10px}h1,h2{font-weight:600;letter-spacing:.025em}h1{font-family:Georgia,"Songti SC","SimSun",serif;font-size:23px}.badge{background:#e2e9db;color:#536d53;border-radius:20px;font-size:12px}.muted{color:var(--muted)}label{margin:15px 0 9px}input,textarea{background:#fffffc73;border-color:#c8d0bf;border-radius:3px}textarea{min-height:88px}button{border-radius:4px}.primary{background:#315848;color:#fff9e8;font-weight:550}.primary:hover:not(:disabled){background:#254b3c}.secondary{background:#dce5d7;color:#31543f}#task-form button,#finish{font-size:16px;letter-spacing:.12em;min-height:52px}.odds{margin-top:13px;font-size:12px}.odds-list-item{background:#e9ecdf;border-radius:3px}.result{background:#efe6c9;border:1px solid #d9c798;border-radius:3px;padding:22px}.result strong{color:#75602e;font-family:Georgia,"Songti SC",serif;font-size:36px}.result>span{font-size:14px;color:#74643d}
+.lower-grid{gap:52px;padding:0 28px}.lower-grid .panel{background:transparent;border:0;border-radius:0;padding:0;margin-bottom:28px}.lower-grid h2{font-size:18px}.lower-grid .section-head{border-top:1px solid #acbead;padding-top:20px}.lower-grid .section-head:before{content:"01";font:12px Georgia,serif;color:#7e927a;display:block;width:100%;margin-bottom:4px}.lower-grid .panel:last-child .section-head:before{content:"02"}.small{font-size:12px}.empty{border-bottom:1px solid #cbd5c9;padding:16px 0 22px;font-size:14px}.reward-row,.history-row{border-color:#cbd5c9}.reward-row button{background:#d3dfcc;border:1px solid #bbccb4;max-width:48%;white-space:normal}.history-icon{background:transparent;border:1px solid #acbea7;border-radius:50%;width:28px;height:28px;color:#5a7554}.delta{color:#516b36}.add-summary{color:#496a40;font-size:14px}.row-copy strong{font-weight:550}.row-copy small{font-size:12px}.history-row{position:relative}.history-row:not(:last-child):after{content:"";position:absolute;top:calc(50% + 17px);bottom:-20px;left:14px;border-left:1px dotted #a4b99a}
+#sound-check.panel{background:transparent;border:0;border-bottom:1px solid #bdcbb7;border-radius:0;padding:0 0 10px;max-width:660px;margin:0 auto 30px}#sound-check summary{font-size:12px;color:#677b62}#sound-check[open]{background:#edf0e4;padding:16px;border:1px solid #c6d1bd}footer{font-size:13px;color:#6b7b64;padding:18px 0}footer p,footer span{font-size:12px}dialog{background:#f4f4e9;border-radius:6px}dialog::backdrop{background:#153b3380}:focus-visible{outline-color:#8c7441}
+@media(min-width:760px){.journey-caption{top:32px;left:38px}.journey{height:420px}.trail-map{width:68%;left:24%}.journey-status{left:30%;bottom:44px}}
+@media(max-width:650px){main{padding:18px 16px max(22px,env(safe-area-inset-bottom))}header{margin-bottom:16px}.brand{font-size:17px;gap:8px}#sound-toggle{padding:8px 12px;font-size:12px}.journey{height:302px;margin:0 -16px;border-radius:0}.journey-caption{top:20px;left:24px}.eyebrow{font-size:11px;letter-spacing:.1em}.journey-caption p{font-size:22px;margin-top:8px}.wallet{top:88px;right:20px;padding:9px 12px;gap:10px;max-width:46%}.amount #balance{font-size:26px}.wallet p{font-size:11px}.coin{font-size:18px}.task.panel{padding:23px 20px 12px;margin:-18px 0 28px}.task:before{left:20px;right:20px}.journey-status{bottom:35px;left:20px;font-size:11px}.lower-grid{padding:0 6px;display:block}.lower-grid .panel{margin-bottom:30px}.task h1{font-size:22px}#first-tip{font-size:13px}.lower-grid .section-head{padding-top:16px}.lower-grid .section-head:before{margin-bottom:0}#sound-check.panel{margin-bottom:26px}.dialog-buttons{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.journey *{animation:none!important;transition:none!important}}
+
+/* 清新旅人版：无纸纹、无水墨；角色与地形保持独立，移动时不会拉伸。 */
+:root{--ink:#304e49;--muted:#667b70;--line:#d2dfca;--bg:#f3f7ed}
+body{background:linear-gradient(#ecf7f5 0,#f4f8ed 680px,#eaf2df 100%)}
+.journey{background:#cdebf0;border-radius:24px 24px 0 0;height:380px}
+.landscape{filter:saturate(.48) brightness(1.025);object-position:center 54%}
+.journey:after{background:linear-gradient(180deg,#edf2ed38,#eef0e320);z-index:-1}
+.journey-caption{z-index:2}.journey-caption p,h1,.result strong{font-family:inherit;font-weight:650;letter-spacing:.015em}
+.journey-caption p{font-size:25px;color:#365d59}
+.eyebrow{letter-spacing:.09em;color:#55746b}
+.wallet{z-index:2;border-radius:18px;background:#fffff0e0;box-shadow:0 4px 12px #6287720a;border-color:#ffffffd0}
+.amount #balance{font-family:inherit;font-weight:650}
+.mark{background:#52796b;color:#fff4cf}
+.task.panel{background:#fbfdf5ed;border:1px solid #fffffff0;border-radius:20px;box-shadow:0 8px 24px #4e76550b}
+.task:before{height:0}.task h1{font-size:22px}.badge{background:#e6f0dc;color:#587144}
+input,textarea{border-radius:12px;background:#f4f8ed;border-color:#d4dfcc}
+button{border-radius:12px}.primary{background:#547e67}.primary:hover:not(:disabled){background:#426d55}
+.secondary{background:#e5eedb}.result{border-radius:16px;background:#fcf1d5;border-color:#ead9ae}.result strong{color:#916c39}
+.trail-shadow{stroke:#789b7050;stroke-width:14;stroke-linecap:round}
+.trail{stroke:#fff0c9;stroke-width:11}
+.trail-progress{stroke:#dfbd7a;stroke-width:2;stroke-dasharray:3 6}
+.summit{fill:#efb872;stroke:#fff7df;stroke-width:2}.summit-ring{stroke:#fff8e4;stroke-width:2}
+.trail-actors{position:absolute;inset:0;pointer-events:none}
+.traveler{position:absolute;left:16.6667%;top:85%;width:58px;height:76px;transform:translate(-50%,-100%) scale(var(--depth,1));transform-origin:50% 100%;--direction:1}
+.traveler-sprite{width:125%;height:125%;object-fit:contain;display:block;transform:scaleX(var(--direction));transform-origin:50% 90%;position:absolute;left:-12.5%;top:-12.5%;z-index:1}
+.traveler-shadow{position:absolute;width:26px;height:7px;bottom:-1px;left:calc(50% - 13px);border-radius:50%;background:#3f755f35}
+.journey.is-moving:not(.is-arrived) .traveler-sprite{animation:walking .32s ease-in-out infinite}
+.arrival-spark{position:absolute;right:0;top:-12px;font-size:22px;color:#fff5b3;opacity:0;text-shadow:0 1px 5px #c39144}
+.journey.is-arrived .arrival-spark{animation:little-arrival .8s ease-out both}
+.journey.is-moving .landscape{filter:saturate(.48) brightness(1.025);transition:none}
+.journey-status{bottom:36px;left:28px;background:#f7fbe8db;color:#4d6b51;border-radius:30px;padding:7px 12px;text-shadow:none;letter-spacing:.025em}
+.lower-grid .section-head:before{font-family:inherit;color:#8da17b}.history-icon{background:#eaf2de;border-color:#c7d9b6}
+.reward-row button{background:#e3eed4;border-color:#cedfbc}
+#sound-check[open]{background:#f3f8e9;border-radius:14px;border-color:#d5e1c8}
+@keyframes walking{0%,100%{transform:translateY(0) rotate(-2deg) scaleX(var(--direction))}50%{transform:translateY(-3px) rotate(2deg) scaleX(var(--direction))}}
+@keyframes little-arrival{0%{opacity:0;transform:translateY(6px) scale(.5)}45%{opacity:1;transform:translateY(0) scale(1.15)}100%{opacity:0;transform:translateY(-7px) scale(.9)}}
+@media(min-width:760px){.journey{height:420px}.trail-actors{width:68%;left:24%}.journey-status{left:30%;bottom:30px}.traveler{width:68px;height:88px}}
+@media(max-width:650px){.journey{height:302px;border-radius:0}.journey-caption p{font-size:22px}.wallet{top:89px;right:20px;border-radius:14px}.task.panel{border-radius:18px}.journey-status{left:auto;right:20px;bottom:32px;font-size:11px;padding:6px 10px}.traveler{width:48px;height:64px}}
