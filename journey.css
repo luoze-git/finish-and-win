@@ -1,4 +1,17 @@
 /* 主页面视觉层；不包含任务、奖励或存储规则。 */
+.repeat-toggle{display:flex;align-items:center;gap:10px;min-height:44px;font-size:14px;cursor:pointer}
+.repeat-toggle input{appearance:none;display:inline-block;flex:none;position:relative;width:42px;height:25px;padding:0;margin:0;border:1px solid #a9bfa5;border-radius:20px;background:#d7dfd1;cursor:pointer}
+.repeat-toggle input:before{content:"";position:absolute;width:19px;height:19px;left:2px;top:2px;border-radius:50%;background:white;box-shadow:0 1px 3px #34533a20}
+.repeat-toggle input:checked{background:#547e67;border-color:#547e67}
+.repeat-toggle input:checked:before{left:19px}
+.text-button{background:transparent;color:#496a40;min-height:44px;padding:8px 12px;font-size:14px}
+.row-actions{display:flex;flex-direction:column;align-items:stretch;flex:none;max-width:44%;min-width:70px}
+.reward-row .row-actions button{max-width:none;width:100%;min-height:44px}
+.reward-row .row-actions .text-button{border:0;background:transparent;font-size:13px}
+#active-edit{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+#saved-tasks{border-top:1px solid #d2dfca;margin-top:22px}
+#edit-dialog{max-height:90dvh;overflow:auto}
+#edit-dialog .danger{color:#93563b;margin-top:16px}
 :root{--ink:#233f39;--muted:#63766e;--line:#cbd5c9;--paper:#f7f7ed;--bg:#e7ece2;--navy:#294e43;--yellow:#e8cc8e;background:var(--bg)}
 body{background:linear-gradient(180deg,#e6efe9 0,#edf0e5 620px,#e2e8dc 100%)}main{max-width:1100px;padding:26px 28px 24px}
 header{margin:0 0 22px}.brand{font-size:18px;letter-spacing:.04em;font-weight:650}.mark{color:#f0dfb1;background:#315346;border-radius:50%;font-size:22px;padding:4px 10px}#sound-toggle{background:transparent;border:1px solid #b8c9bf;border-radius:24px;min-height:44px;font-size:14px;padding:9px 15px}

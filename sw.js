@@ -1,6 +1,6 @@
 // 联网优先加载最新页面；断网时回退到已保存的静态文件。业务数据在独立 IndexedDB 中。
-const CACHE = 'finish-and-win-v8';
-const ASSETS = ['./', './index.html', './style.css', './journey.css', './journey.js', './meadow.png', './traveler-forest.png', './app.js', './sound.js', './sound-check.wav', './core.js', './config.js', './store.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
+const CACHE = 'finish-and-win-v9';
+const ASSETS = ['./', './index.html', './style.css', './journey.css', './journey.js', './meadow.png', './traveler-forest.png', './app.js', './sound.js', './sound-check.wav', './core.js', './defaults.js', './config.js', './store.js', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())));
 self.addEventListener('activate', event => event.waitUntil((async () => { for (const key of await caches.keys()) if (key.startsWith('finish-and-win-') && key !== CACHE) await caches.delete(key); await self.clients.claim(); })()));
 self.addEventListener('fetch', event => {

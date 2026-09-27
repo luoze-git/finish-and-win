@@ -1,4 +1,4 @@
-import { initialState, change } from './core.js';
+import { initialState, change, migrate } from './core.js?v=repeat9';
 const opened = new Promise((resolve, reject) => {
   const request = indexedDB.open('finish-and-win', 1);
   request.onupgradeneeded = () => request.result.createObjectStore('state');
@@ -10,14 +10,16 @@ const opened = new Promise((resolve, reject) => {
 export async function transaction(action) {
   const db = await opened;
   return new Promise((resolve, reject) => {
-    const tx = db.transaction('state', action ? 'readwrite' : 'readonly');
+    const tx = db.transaction('state', 'readwrite');
     const store = tx.objectStore('state');
     const request = store.get('current');
     let result, failure;
     request.onsuccess = () => {
       try {
-        result = request.result ?? initialState();
-        if (action) { result = change(result, action); store.put(result, 'current'); }
+        const saved = request.result;
+        result = saved ? migrate(saved) : initialState();
+        if (action) result = change(result, action);
+        if (action || !saved || saved.schemaVersion !== 2 || !saved.defaultsVersion) store.put(result, 'current');
       } catch (error) { failure = error; tx.abort(); }
     };
     tx.oncomplete = () => resolve(result);
