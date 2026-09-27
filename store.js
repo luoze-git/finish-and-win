@@ -1,4 +1,4 @@
-import { initialState, change, migrate } from './core.js?v=repeat9';
+import { initialState, change, migrate, SCHEMA_VERSION } from './core.js?v=ongoing10';
 const opened = new Promise((resolve, reject) => {
   const request = indexedDB.open('finish-and-win', 1);
   request.onupgradeneeded = () => request.result.createObjectStore('state');
@@ -19,7 +19,7 @@ export async function transaction(action) {
         const saved = request.result;
         result = saved ? migrate(saved) : initialState();
         if (action) result = change(result, action);
-        if (action || !saved || saved.schemaVersion !== 2 || !saved.defaultsVersion) store.put(result, 'current');
+        if (action || !saved || saved.schemaVersion !== SCHEMA_VERSION || !saved.defaultsVersion) store.put(result, 'current');
       } catch (error) { failure = error; tx.abort(); }
     };
     tx.oncomplete = () => resolve(result);

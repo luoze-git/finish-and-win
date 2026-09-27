@@ -1,4 +1,14 @@
 /* 主页面视觉层；不包含任务、奖励或存储规则。 */
+select{width:100%;font:inherit;color:var(--ink);padding:12px;border:1px solid #c8d0bf;border-radius:12px;background:#f4f8ed;min-height:46px}
+.task-tabs{display:flex;gap:8px;margin:10px 0}.task-tabs button{flex:1;background:transparent;color:#516b59;border:1px solid #cad9bf;min-height:44px;font-size:14px}
+.task-tabs button[aria-selected="true"]{background:#547e67;color:#fff}
+.session-context,.next-step{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.65;background:#eaf1df;padding:12px;border-radius:10px;font-size:14px}
+.session-note{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6;color:var(--muted);margin:8px 0}
+.next-step{font-weight:600;color:#3a5c40;margin:10px 0}
+#session-area button.primary,#pause-session{width:100%;margin-top:12px}
+#session-area textarea{min-height:74px}
+#task-list .reward-row{align-items:flex-start}
+#task-list .row-actions{max-width:30%;min-width:76px}
 .repeat-toggle{display:flex;align-items:center;gap:10px;min-height:44px;font-size:14px;cursor:pointer}
 .repeat-toggle input{appearance:none;display:inline-block;flex:none;position:relative;width:42px;height:25px;padding:0;margin:0;border:1px solid #a9bfa5;border-radius:20px;background:#d7dfd1;cursor:pointer}
 .repeat-toggle input:before{content:"";position:absolute;width:19px;height:19px;left:2px;top:2px;border-radius:50%;background:white;box-shadow:0 1px 3px #34533a20}

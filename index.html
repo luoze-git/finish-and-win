@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#182d52"><meta name="description" content="写下一个具体任务，完成后开奖。属于你的小小奖励。">
-  <title>完成后开奖 · 小旅人的山路</title><link rel="stylesheet" href="./style.css?v=repeat9"><link rel="stylesheet" href="./journey.css?v=repeat9"><link rel="manifest" href="./manifest.webmanifest">
+  <title>完成后开奖 · 小旅人的山路</title><link rel="stylesheet" href="./style.css?v=ongoing10"><link rel="stylesheet" href="./journey.css?v=ongoing10"><link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 <body>
@@ -25,10 +25,25 @@
   <section class="task panel" aria-labelledby="task-title">
     <div class="section-head"><h1 id="task-title">下一件小事</h1><span id="task-status" class="badge">准备开始</span></div>
     <p id="first-tip" class="muted">写下一个具体任务，完成后开奖。</p>
-    <form id="task-form"><label for="task-name">我现在要完成…</label><textarea id="task-name" rows="2" maxlength="100" placeholder="比如：读完 10 页书" required></textarea><label class="repeat-toggle"><input id="task-repeatable" type="checkbox" role="switch"><span>可重复</span></label><button id="start" class="primary" disabled>开始 <span aria-hidden="true">→</span></button></form>
+    <form id="task-form"><label for="task-name">我现在要完成…</label><textarea id="task-name" rows="2" maxlength="100" placeholder="比如：读完 10 页书" required></textarea><label for="task-kind">任务类型</label><select id="task-kind"><option value="oneoff">一次完成</option><option value="repeatable">可重复任务</option><option value="ongoing">进行中任务 · 分多次推进</option></select><button id="start" class="primary" disabled>开始 <span aria-hidden="true">→</span></button></form>
     <div id="active-task" hidden><p id="active-name"></p><p class="muted">先专心做这件事，奖励在这里等你。</p><button id="finish" class="primary">完成并开奖 <span aria-hidden="true">✦</span></button></div>
+    <div id="session-area" hidden>
+      <p id="session-context" class="session-context"></p>
+      <form id="session-start-form">
+        <label for="session-goal">这次我先做到：</label><textarea id="session-goal" rows="2" maxlength="500" required placeholder="比如：找齐工资单"></textarea>
+        <button id="begin-session" class="primary">开始这次推进</button><button id="cancel-session" class="text-button" type="button">稍后再开始</button>
+      </form>
+      <form id="session-finish-form" hidden>
+        <p id="active-goal" class="session-context"></p>
+        <label for="session-note">做到哪里：</label><textarea id="session-note" rows="2" maxlength="500" placeholder="记下这次实际做到了哪里（可选）"></textarea>
+        <label for="session-next">下一步：</label><textarea id="session-next" rows="2" maxlength="500" placeholder="下次从哪里开始（可选）"></textarea>
+        <button id="finish-session" class="primary">完成这次推进</button>
+        <button id="pause-session" class="secondary" type="button">先停在这里</button>
+        <p class="muted">完成推进会开奖；先停在这里只保存上下文，不开奖。</p>
+      </form>
+    </div>
     <div id="active-edit" hidden><span id="active-repeat-state" class="muted"></span><button id="edit-active" type="button" class="text-button">编辑任务</button></div>
-    <div id="saved-tasks" hidden><p class="muted">我的任务</p><div id="task-list"></div></div>
+    <div id="saved-tasks"><p class="muted">我的任务</p><div class="task-tabs" role="tablist" aria-label="任务分类"><button id="tab-normal" role="tab" aria-selected="true" aria-controls="task-list">普通任务</button><button id="tab-ongoing" role="tab" aria-selected="false" aria-controls="task-list" tabindex="-1">进行中</button></div><div id="task-list" role="tabpanel" aria-labelledby="tab-normal"></div></div>
     <div id="result" class="result" role="status" aria-live="polite" hidden></div>
     <details class="odds"><summary>每次都有奖励 · 查看开奖概率</summary><div id="odds-list"></div><p>每次独立随机，累计结果不保证符合上述比例。</p></details>
   </section>
@@ -53,11 +68,12 @@
     <label for="edit-name">名称</label><input id="edit-name" maxlength="100" required>
     <div id="edit-cost-field"><label for="edit-cost">所需金币</label><input id="edit-cost" type="number" min="1" max="9007199254740991" step="1" inputmode="numeric"></div>
     <label class="repeat-toggle"><input id="edit-repeatable" type="checkbox" role="switch"><span>可重复</span></label>
+    <div id="edit-kind-field"><label for="edit-kind">任务类型</label><select id="edit-kind"><option value="oneoff">一次完成</option><option value="repeatable">可重复任务</option><option value="ongoing">进行中任务 · 分多次推进</option></select></div>
     <p id="edit-error" class="muted" role="alert" hidden></p>
     <div class="dialog-buttons"><button id="cancel-edit" type="button" class="secondary">取消</button><button id="save-edit" class="primary">保存</button></div>
     <button id="delete-reward" type="button" class="text-button danger">删除奖励</button>
   </form>
 </dialog>
 <dialog id="redeem-dialog" aria-labelledby="redeem-title"><h2 id="redeem-title">现在兑换这份奖励？</h2><p id="redeem-description"></p><p class="muted">兑换后会扣除金币，并保留记录。</p><div class="dialog-buttons"><button id="cancel-redeem" class="secondary">再攒一会儿</button><button id="confirm-redeem" class="primary">确认兑换</button></div></dialog>
-<script type="module" src="./app.js?v=repeat9"></script>
+<script type="module" src="./app.js?v=ongoing10"></script>
 </body></html>

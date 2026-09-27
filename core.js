@@ -1,5 +1,19 @@
 import { REWARDS } from './config.js';
 import { DEFAULT_REWARDS } from './defaults.js';
+export const SCHEMA_VERSION = 3;
+const kindOf = (kind, repeatable) => {
+  const value = kind ?? (repeatable ? 'repeatable' : 'oneoff');
+  if (!['oneoff', 'repeatable', 'ongoing'].includes(value)) throw Error('任务类型无效');
+  return value;
+};
+const contextText = (value = '', required = false) => {
+  if (typeof value !== 'string' || value.trim().length > 500 || (required && !value.trim())) throw Error(required ? '请填写这次具体的小目标（最多 500 字）' : '推进内容最多 500 字');
+  return value.trim();
+};
+export function sessionContext(history, taskId) {
+  const sessions = history.filter(r => r.type === 'progress' && r.taskId === taskId);
+  return { latest: sessions[0] ?? null, count: sessions.filter(r => r.outcome !== 'paused').length };
+}
 export function migrate(state) {
   const next = structuredClone(state);
   next.tasks ??= [];
@@ -16,7 +30,16 @@ export function migrate(state) {
     });
     next.defaultsVersion = 1;
   }
-  next.schemaVersion = 2;
+  for (const task of next.tasks) {
+    task.kind = kindOf(task.kind, task.repeatable);
+    delete task.repeatable;
+  }
+  if (next.active) {
+    next.active.kind = kindOf(next.active.kind ?? next.tasks.find(t => t.id === next.active.taskId)?.kind, next.active.repeatable);
+    next.active.status ??= 'running';
+    delete next.active.repeatable;
+  }
+  next.schemaVersion = SCHEMA_VERSION;
   return next;
 }
 export const initialState = () => migrate({ balance: 0, active: null, rewards: [], history: [] });
@@ -34,34 +57,74 @@ const nameOf = value => {
 export function change(state, action, { id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`, now = new Date().toISOString(), random = Math.random } = {}) {
   const next = migrate(state);
   switch (action.type) {
-    case 'start':
+    case 'start': {
       if (next.active) throw Error('先完成当前任务吧');
-      next.tasks.push({ id, name: nameOf(action.name), repeatable: !!action.repeatable });
-      next.active = { id, taskId: id, name: nameOf(action.name), repeatable: !!action.repeatable, startedAt: now }; break;
+      const kind = kindOf(action.kind, action.repeatable);
+      const taskId = kind === 'ongoing' ? id + '-task' : id;
+      next.tasks.push({ id: taskId, name: nameOf(action.name), kind });
+      next.active = { id, taskId, name: nameOf(action.name), kind, status: kind === 'ongoing' ? 'preparing' : 'running', startedAt: kind === 'ongoing' ? null : now };
+      break;
+    }
     case 'startTask': {
       if (next.active) throw Error('先完成当前任务吧');
       const task = next.tasks.find(t => t.id === action.taskId);
       if (!task) throw Error('任务不存在');
-      next.active = { ...task, id, taskId: task.id, startedAt: now };
+      next.active = { ...task, id, taskId: task.id, status: task.kind === 'ongoing' ? 'preparing' : 'running', startedAt: task.kind === 'ongoing' ? null : now };
       break;
     }
     case 'editTask': {
       const task = next.tasks.find(t => t.id === action.taskId);
       if (!task) throw Error('任务已完成或不存在');
-      task.name = nameOf(action.name); task.repeatable = !!action.repeatable;
+      const kind = kindOf(action.kind, action.repeatable);
+      if (next.active?.taskId === task.id && task.kind !== kind && [task.kind, kind].includes('ongoing')) throw Error('请先保存这次执行，再修改为其他任务类型');
+      task.name = nameOf(action.name); task.kind = kind;
       if (next.active?.taskId === task.id) {
-        next.active.name = task.name; next.active.repeatable = task.repeatable;
+        next.active.name = task.name; next.active.kind = task.kind;
       }
       break;
     }
     case 'finish': {
       if (!next.active || next.active.id !== action.id) throw Error('这个任务已经开奖，无需重复操作');
+      if (next.active.kind === 'ongoing') throw Error('请使用完成这次推进');
       const coins = draw(random);
       if (!Number.isSafeInteger(next.balance + coins)) throw Error('余额已达到上限');
       next.balance += coins;
-      next.history.unshift({ id: next.active.id, taskId: next.active.taskId, type: 'finish', name: next.active.name, repeatable: next.active.repeatable, coins, at: now });
-      if (!next.active.repeatable) next.tasks = next.tasks.filter(t => t.id !== next.active.taskId);
+      next.history.unshift({ id: next.active.id, taskId: next.active.taskId, type: 'finish', name: next.active.name, kind: next.active.kind, coins, startedAt: next.active.startedAt, at: now });
+      if (next.active.kind === 'oneoff') next.tasks = next.tasks.filter(t => t.id !== next.active.taskId);
       next.active = null; break;
+    }
+    case 'beginSession':
+    case 'cancelSession':
+    case 'progress':
+    case 'pauseSession': {
+      const active = next.active;
+      if (!active || active.id !== action.id || active.kind !== 'ongoing') throw Error('这次推进已结束或发生变化，请刷新后重试');
+      if (action.type === 'beginSession') {
+        if (active.status !== 'preparing') throw Error('这次推进已经开始');
+        active.goal = contextText(action.goal, true); active.status = 'running'; active.startedAt = now;
+        break;
+      }
+      if (action.type === 'cancelSession') {
+        if (active.status !== 'preparing') throw Error('请使用先停在这里保存上下文');
+        next.active = null; break;
+      }
+      if (active.status !== 'running') throw Error('请先填写小目标并开始');
+      const note = contextText(action.note), nextStep = contextText(action.nextStep);
+      const coins = action.type === 'progress' ? draw(random) : 0;
+      if (!Number.isSafeInteger(next.balance + coins)) throw Error('余额已达到上限');
+      next.balance += coins;
+      next.history.unshift({ id: active.id, taskId: active.taskId, type: 'progress',
+        name: active.name, goal: active.goal, note, nextStep, coins,
+        outcome: action.type === 'progress' ? 'advanced' : 'paused', startedAt: active.startedAt, at: now });
+      next.active = null; break;
+    }
+    case 'completeTask': {
+      const task = next.tasks.find(t => t.id === action.taskId);
+      if (!task || task.kind !== 'ongoing') throw Error('这件事情已完成或不存在');
+      if (next.active?.taskId === task.id) throw Error('请先保存这次推进，再完成整个任务');
+      next.history.unshift({ id, taskId: task.id, type: 'complete', name: task.name, at: now });
+      next.tasks = next.tasks.filter(t => t.id !== task.id);
+      break;
     }
     case 'add':
       if (!Number.isSafeInteger(action.cost) || action.cost <= 0) throw Error('金币数必须是正整数');
