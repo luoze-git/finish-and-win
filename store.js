@@ -1,4 +1,4 @@
-import { initialState, change, migrate, SCHEMA_VERSION } from './core.js?v=ongoing10';
+import { initialState, change, migrate, SCHEMA_VERSION } from './core.js?v=lists11';
 const opened = new Promise((resolve, reject) => {
   const request = indexedDB.open('finish-and-win', 1);
   request.onupgradeneeded = () => request.result.createObjectStore('state');

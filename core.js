@@ -57,6 +57,10 @@ const nameOf = value => {
 export function change(state, action, { id = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`, now = new Date().toISOString(), random = Math.random } = {}) {
   const next = migrate(state);
   switch (action.type) {
+    case 'addTask': {
+      next.tasks.push({ id, name: nameOf(action.name), kind: kindOf(action.kind, action.repeatable) });
+      break;
+    }
     case 'start': {
       if (next.active) throw Error('先完成当前任务吧');
       const kind = kindOf(action.kind, action.repeatable);

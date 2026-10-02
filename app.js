@@ -1,6 +1,6 @@
 import { REWARDS } from './config.js';
-import { transaction } from './store.js?v=ongoing10';
-import { sessionContext } from './core.js?v=ongoing10';
+import { transaction } from './store.js?v=lists11';
+import { sessionContext } from './core.js?v=lists11';
 import { soundEnabled, setSound, unlockSound, playSound } from './sound.js';
 import { arrive, resetJourney } from './journey.js?v=traveler6';
 const $ = id => document.getElementById(id);
@@ -108,14 +108,18 @@ function message(text) { $('message').textContent = text; $('message').hidden = 
 function render() {
   if (arriving) { $('finish').disabled = true; $('finish-session').disabled = true; $('pause-session').disabled = true; return; }
   $('balance').textContent = state.balance.toLocaleString('zh-CN');
-  $('task-form').hidden = !!state.active; $('active-task').hidden = !state.active;
+  $('list-tip').hidden = !!state.active; $('active-task').hidden = !state.active;
   $('task-title').textContent = state.active ? '就做这一件' : '下一件小事';
   const ongoing = state.active?.kind === 'ongoing';
   const preparing = ongoing && state.active.status === 'preparing';
   $('task-status').textContent = preparing ? '准备这次推进' : state.active ? '进行中' : '准备开始';
   $('active-name').textContent = state.active?.name ?? '';
   $('first-tip').hidden = !!state.active || state.history.some(x => x.type === 'finish');
-  $('start').disabled = busy; $('finish').disabled = busy;
+  $('finish').disabled = busy;
+  for (const tab of ['normal', 'ongoing']) {
+    $('add-' + tab + '-details').hidden = taskTab !== tab;
+    $('add-' + tab + '-save').disabled = busy;
+  }
   $('active-edit').hidden = !state.active;
   $('active-repeat-state').textContent = taskKindLabel(state.active?.kind) ?? '';
   $('finish').hidden = ongoing;
@@ -137,7 +141,7 @@ function render() {
   $('edit-active').disabled = busy;
   $('task-list').replaceChildren();
   const tasks = state.tasks.filter(t => t.id !== state.active?.taskId && (taskTab === 'ongoing' ? t.kind === 'ongoing' : t.kind !== 'ongoing'));
-  if (!tasks.length) $('task-list').append(node('p', taskTab === 'ongoing' ? '还没有待继续的事情。创建时选择「进行中任务」，就能分多次推进。' : '暂无待开始的普通任务。', 'empty'));
+  if (!tasks.length) $('task-list').append(node('p', taskTab === 'ongoing' ? '把需要分多次推进的事情，先记在这里。' : '暂无待开始的普通任务。', 'empty'));
   for (const task of tasks) {
     const row = node('div', undefined, 'reward-row');
     const copy = node('div', undefined, 'row-copy');
@@ -146,10 +150,10 @@ function render() {
       const { latest, count } = sessionContext(state.history, task.id);
       copy.append(node('p', '下一步：' + (latest?.nextStep || '继续时，先定一个小目标'), 'next-step'));
       if (latest?.note) copy.append(node('p', '上次停在：' + latest.note, 'session-note'));
-      copy.append(node('small', `${latest ? '上次' + (latest.outcome === 'paused' ? '停下' : '推进') + '：' + ago(latest.at) : '尚未推进'} · 已推进 ${count} 次`));
+      copy.append(node('small', `${latest ? '上次' + (latest.outcome === 'paused' ? '停下' : '推进') + '：' + ago(latest.at) : '尚未开始'} · 已推进 ${count} 次`));
     }
     const actions = node('div', undefined, 'row-actions');
-    const start = node('button', task.kind === 'ongoing' ? '继续' : '开始', 'secondary');
+    const start = node('button', task.kind === 'ongoing' && sessionContext(state.history, task.id).latest ? '继续' : '开始', 'secondary');
     start.type = 'button'; start.disabled = busy || !!state.active;
     start.addEventListener('click', async () => {
       unlockSound();
@@ -220,16 +224,18 @@ async function act(action) {
   } catch (error) { message(error.message); return false; }
   finally { busy = false; $('confirm-redeem').disabled = false; if (state) render(); }
 }
-$('task-form').addEventListener('submit', async event => {
-  event.preventDefault();
-  unlockSound();
-  const kind = $('task-kind').value;
-  if (await act({ type: 'start', name: $('task-name').value, kind })) {
-    resetJourney(); $('task-form').reset(); $('result').hidden = true;
-    if (kind === 'ongoing') { selectTab('ongoing'); $('session-goal').focus(); }
-    else { playSound('start'); $('finish').focus(); }
-  }
-});
+for (const tab of ['normal', 'ongoing']) {
+  $('add-' + tab + '-form').addEventListener('submit', async event => {
+    event.preventDefault();
+    const kind = tab === 'ongoing' ? 'ongoing' : $('add-normal-repeatable').checked ? 'repeatable' : 'oneoff';
+    if (await act({ type: 'addTask', name: $('add-' + tab + '-name').value, kind })) {
+      $('add-' + tab + '-form').reset();
+      $('add-' + tab + '-details').open = false;
+      if (taskTab === tab) $('add-' + tab + '-details').querySelector('summary').focus();
+      message('已保存到任务列表，准备好时再开始。');
+    }
+  });
+}
 async function finishExecution(type = 'finish') {
   if (busy || arriving) return;
   unlockSound();

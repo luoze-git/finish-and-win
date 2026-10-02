@@ -76,3 +76,5 @@ button{border-radius:12px}.primary{background:#547e67}.primary:hover:not(:disabl
 @keyframes little-arrival{0%{opacity:0;transform:translateY(6px) scale(.5)}45%{opacity:1;transform:translateY(0) scale(1.15)}100%{opacity:0;transform:translateY(-7px) scale(.9)}}
 @media(min-width:760px){.journey{height:420px}.trail-actors{width:68%;left:24%}.journey-status{left:30%;bottom:30px}.traveler{width:68px;height:88px}}
 @media(max-width:650px){.journey{height:302px;border-radius:0}.journey-caption p{font-size:22px}.wallet{top:89px;right:20px;border-radius:14px}.task.panel{border-radius:18px}.journey-status{left:auto;right:20px;bottom:32px;font-size:11px;padding:6px 10px}.traveler{width:48px;height:64px}}
+
+.task-add form{padding:0 0 12px}.task-add form>button{width:100%;margin-top:16px}

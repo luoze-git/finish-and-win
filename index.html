@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#182d52"><meta name="description" content="写下一个具体任务，完成后开奖。属于你的小小奖励。">
-  <title>完成后开奖 · 小旅人的山路</title><link rel="stylesheet" href="./style.css?v=ongoing10"><link rel="stylesheet" href="./journey.css?v=ongoing10"><link rel="manifest" href="./manifest.webmanifest">
+  <title>完成后开奖 · 小旅人的山路</title><link rel="stylesheet" href="./style.css?v=lists11"><link rel="stylesheet" href="./journey.css?v=lists11"><link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 <body>
@@ -25,7 +25,7 @@
   <section class="task panel" aria-labelledby="task-title">
     <div class="section-head"><h1 id="task-title">下一件小事</h1><span id="task-status" class="badge">准备开始</span></div>
     <p id="first-tip" class="muted">写下一个具体任务，完成后开奖。</p>
-    <form id="task-form"><label for="task-name">我现在要完成…</label><textarea id="task-name" rows="2" maxlength="100" placeholder="比如：读完 10 页书" required></textarea><label for="task-kind">任务类型</label><select id="task-kind"><option value="oneoff">一次完成</option><option value="repeatable">可重复任务</option><option value="ongoing">进行中任务 · 分多次推进</option></select><button id="start" class="primary" disabled>开始 <span aria-hidden="true">→</span></button></form>
+    <p id="list-tip" class="muted">先把事情记下来，准备好时再开始。</p>
     <div id="active-task" hidden><p id="active-name"></p><p class="muted">先专心做这件事，奖励在这里等你。</p><button id="finish" class="primary">完成并开奖 <span aria-hidden="true">✦</span></button></div>
     <div id="session-area" hidden>
       <p id="session-context" class="session-context"></p>
@@ -43,7 +43,24 @@
       </form>
     </div>
     <div id="active-edit" hidden><span id="active-repeat-state" class="muted"></span><button id="edit-active" type="button" class="text-button">编辑任务</button></div>
-    <div id="saved-tasks"><p class="muted">我的任务</p><div class="task-tabs" role="tablist" aria-label="任务分类"><button id="tab-normal" role="tab" aria-selected="true" aria-controls="task-list">普通任务</button><button id="tab-ongoing" role="tab" aria-selected="false" aria-controls="task-list" tabindex="-1">进行中</button></div><div id="task-list" role="tabpanel" aria-labelledby="tab-normal"></div></div>
+    <div id="saved-tasks"><p class="muted">我的任务</p><div class="task-tabs" role="tablist" aria-label="任务分类"><button id="tab-normal" role="tab" aria-selected="true" aria-controls="task-list">普通任务</button><button id="tab-ongoing" role="tab" aria-selected="false" aria-controls="task-list" tabindex="-1">进行中</button></div><div id="task-list" role="tabpanel" aria-labelledby="tab-normal"></div>
+      <details id="add-normal-details" class="task-add">
+        <summary class="add-summary">＋ 添加任务</summary>
+        <form id="add-normal-form">
+          <label for="add-normal-name">任务名称</label><input id="add-normal-name" maxlength="100" placeholder="比如：读完 10 页书" required>
+          <label class="repeat-toggle"><input id="add-normal-repeatable" type="checkbox" role="switch"><span>可重复</span></label>
+          <button id="add-normal-save" class="secondary" disabled>保存到列表</button>
+        </form>
+      </details>
+      <details id="add-ongoing-details" class="task-add" hidden>
+        <summary class="add-summary">＋ 添加进行中任务</summary>
+        <form id="add-ongoing-form">
+          <label for="add-ongoing-name">任务名称</label><input id="add-ongoing-name" maxlength="100" placeholder="比如：完成报税" required>
+          <p class="muted">先记录这件事。点击开始时，再填写这次的小目标。</p>
+          <button id="add-ongoing-save" class="secondary" disabled>保存到列表</button>
+        </form>
+      </details>
+    </div>
     <div id="result" class="result" role="status" aria-live="polite" hidden></div>
     <details class="odds"><summary>每次都有奖励 · 查看开奖概率</summary><div id="odds-list"></div><p>每次独立随机，累计结果不保证符合上述比例。</p></details>
   </section>
@@ -75,5 +92,5 @@
   </form>
 </dialog>
 <dialog id="redeem-dialog" aria-labelledby="redeem-title"><h2 id="redeem-title">现在兑换这份奖励？</h2><p id="redeem-description"></p><p class="muted">兑换后会扣除金币，并保留记录。</p><div class="dialog-buttons"><button id="cancel-redeem" class="secondary">再攒一会儿</button><button id="confirm-redeem" class="primary">确认兑换</button></div></dialog>
-<script type="module" src="./app.js?v=ongoing10"></script>
+<script type="module" src="./app.js?v=lists11"></script>
 </body></html>
