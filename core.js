@@ -58,7 +58,9 @@ export function change(state, action, { id = globalThis.crypto?.randomUUID?.() ?
   const next = migrate(state);
   switch (action.type) {
     case 'addTask': {
-      next.tasks.push({ id, name: nameOf(action.name), kind: kindOf(action.kind, action.repeatable) });
+      const taskId = action.taskId ?? id;
+      if (typeof taskId !== 'string' || !taskId || next.tasks.some(t => t.id === taskId)) throw Error('任务标识无效或已存在');
+      next.tasks.push({ id: taskId, name: nameOf(action.name), kind: kindOf(action.kind, action.repeatable) });
       break;
     }
     case 'start': {

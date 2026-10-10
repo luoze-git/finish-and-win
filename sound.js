@@ -46,18 +46,21 @@ export function setSound(value) {
 export async function playSound(kind, coins = 3) {
   const requestedGeneration = generation;
   if (!enabled || !await unlockSound() || !enabled || requestedGeneration !== generation) return false;
-  const notes = kind === 'start' ? [523.25,659.25] : kind === 'redeem' ? [783.99,659.25,1046.5] : coins >= 12 ? [523.25,659.25,783.99,1046.5,1318.51,1567.98] : [523.25,659.25,783.99,1046.5];
+  // 兑换：低音开启，随后柔和双音和弦，约一秒收尾；区别于完成任务的上行音阶。
+  const notes = kind === 'redeem'
+    ? [[392, 0], [587.33, .13], [783.99, .29], [987.77, .29], [1174.66, .48]]
+    : (kind === 'start' ? [523.25,659.25] : coins >= 12 ? [523.25,659.25,783.99,1046.5,1318.51,1567.98] : [523.25,659.25,783.99,1046.5]).map((frequency, index) => [frequency, index * .16]);
   try {
-    notes.forEach((frequency, index) => {
+    notes.forEach(([frequency, delay]) => {
       const oscillator = context.createOscillator(), gain = context.createGain();
-      const at = context.currentTime + .03 + index * .16;
-      oscillator.type = 'triangle'; oscillator.frequency.value = frequency;
+      const at = context.currentTime + .03 + delay;
+      oscillator.type = kind === 'redeem' ? 'sine' : 'triangle'; oscillator.frequency.value = frequency;
       gain.gain.setValueAtTime(0, at);
-      gain.gain.linearRampToValueAtTime(.18, at + .012);
-      gain.gain.exponentialRampToValueAtTime(.001, at + .36);
+      gain.gain.linearRampToValueAtTime(kind === 'redeem' ? .22 : .18, at + .012);
+      gain.gain.exponentialRampToValueAtTime(.001, at + (kind === 'redeem' ? .5 : .36));
       oscillator.connect(gain); gain.connect(context.destination); voices.add(oscillator);
       oscillator.onended = () => { voices.delete(oscillator); oscillator.disconnect(); gain.disconnect(); };
-      oscillator.start(at); oscillator.stop(at + .4);
+      oscillator.start(at); oscillator.stop(at + (kind === 'redeem' ? .55 : .4));
     });
     return true;
   } catch {

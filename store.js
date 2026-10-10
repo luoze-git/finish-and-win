@@ -1,4 +1,4 @@
-import { initialState, change, migrate, SCHEMA_VERSION } from './core.js?v=lists11';
+import { initialState, change, migrate, SCHEMA_VERSION } from './core.js?v=quick12';
 const opened = new Promise((resolve, reject) => {
   const request = indexedDB.open('finish-and-win', 1);
   request.onupgradeneeded = () => request.result.createObjectStore('state');
@@ -18,7 +18,8 @@ export async function transaction(action) {
       try {
         const saved = request.result;
         result = saved ? migrate(saved) : initialState();
-        if (action) result = change(result, action);
+        // 快速开始组合两个独立 action，同一事务内提交，避免多标签页竞争留下半完成状态。
+        if (action) for (const item of Array.isArray(action) ? action : [action]) result = change(result, item);
         if (action || !saved || saved.schemaVersion !== SCHEMA_VERSION || !saved.defaultsVersion) store.put(result, 'current');
       } catch (error) { failure = error; tx.abort(); }
     };

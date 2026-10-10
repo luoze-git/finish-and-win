@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#182d52"><meta name="description" content="写下一个具体任务，完成后开奖。属于你的小小奖励。">
-  <title>完成后开奖 · 小旅人的山路</title><link rel="stylesheet" href="./style.css?v=lists11"><link rel="stylesheet" href="./journey.css?v=lists11"><link rel="manifest" href="./manifest.webmanifest">
+  <title>完成后开奖 · 小旅人的山路</title><link rel="stylesheet" href="./style.css?v=quick12"><link rel="stylesheet" href="./journey.css?v=quick12"><link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="./icon-192.png">
 </head>
 <body>
@@ -12,7 +12,7 @@
   <section class="journey" aria-label="山间旅程">
     <img class="landscape" src="./meadow.png?v=traveler6" alt="" fetchpriority="high">
     <div class="journey-caption"><span class="eyebrow">一件小事，一段山路</span><p>慢慢走，也会抵达。</p></div>
-    <section class="wallet" aria-labelledby="wallet-title"><div><p id="wallet-title">沿途积累</p><div class="amount"><span id="balance">0</span><span>金币</span></div></div><span class="coin" aria-hidden="true">✦</span></section>
+    <section class="wallet" aria-labelledby="wallet-title"><div><p id="wallet-title">沿途积累</p><div class="amount"><span id="balance">0</span><span>金币</span></div><button id="wallet-rewards" class="text-button" type="button" aria-controls="reward-section">去兑换 →</button></div><span class="coin" aria-hidden="true">✦</span></section>
     <svg class="trail-map" viewBox="0 0 600 360" preserveAspectRatio="none" aria-hidden="true">
       <path class="trail-shadow" d="M 100 306 C 85 270 255 286 250 247 S 185 233 210 206 S 327 225 340 186 S 361 178 390 154"/>
       <path id="journey-path" class="trail" d="M 100 306 C 85 270 255 286 250 247 S 185 233 210 206 S 327 225 340 186 S 361 178 390 154"/>
@@ -25,7 +25,6 @@
   <section class="task panel" aria-labelledby="task-title">
     <div class="section-head"><h1 id="task-title">下一件小事</h1><span id="task-status" class="badge">准备开始</span></div>
     <p id="first-tip" class="muted">写下一个具体任务，完成后开奖。</p>
-    <p id="list-tip" class="muted">先把事情记下来，准备好时再开始。</p>
     <div id="active-task" hidden><p id="active-name"></p><p class="muted">先专心做这件事，奖励在这里等你。</p><button id="finish" class="primary">完成并开奖 <span aria-hidden="true">✦</span></button></div>
     <div id="session-area" hidden>
       <p id="session-context" class="session-context"></p>
@@ -42,8 +41,18 @@
         <p class="muted">完成推进会开奖；先停在这里只保存上下文，不开奖。</p>
       </form>
     </div>
-    <div id="active-edit" hidden><span id="active-repeat-state" class="muted"></span><button id="edit-active" type="button" class="text-button">编辑任务</button></div>
-    <div id="saved-tasks"><p class="muted">我的任务</p><div class="task-tabs" role="tablist" aria-label="任务分类"><button id="tab-normal" role="tab" aria-selected="true" aria-controls="task-list">普通任务</button><button id="tab-ongoing" role="tab" aria-selected="false" aria-controls="task-list" tabindex="-1">进行中</button></div><div id="task-list" role="tabpanel" aria-labelledby="tab-normal"></div>
+    <div id="active-edit" hidden><span id="active-repeat-state" class="muted" hidden></span><button id="edit-active" type="button" class="text-button" aria-label="编辑当前任务">•••</button></div>
+    <details id="quick-start" open>
+      <summary id="quick-summary" class="add-summary" hidden>＋ 记下下一件事</summary>
+      <form id="quick-form">
+        <label for="quick-name">我现在要做……</label>
+        <input id="quick-name" maxlength="100" placeholder="一件具体的小事" required autocomplete="off">
+        <p id="quick-active-hint" class="muted" hidden>当前任务还在进行，可以先保存下一件事。</p>
+        <div class="quick-actions"><button id="quick-save" type="submit" value="save" class="secondary" disabled>保存</button><button id="quick-go" type="submit" value="start" class="primary" disabled>开始 →</button></div>
+        <p id="quick-feedback" role="status" class="muted" hidden></p>
+      </form>
+    </details>
+    <div id="saved-tasks"><p class="muted">我的任务</p><div class="task-tabs" role="tablist" aria-label="任务分类"><button id="tab-normal" role="tab" aria-selected="true" aria-controls="task-list">普通</button><button id="tab-ongoing" role="tab" aria-selected="false" aria-controls="task-list" tabindex="-1">进行中</button></div><div id="task-list" role="tabpanel" aria-labelledby="tab-normal"></div>
       <details id="add-normal-details" class="task-add">
         <summary class="add-summary">＋ 添加任务</summary>
         <form id="add-normal-form">
@@ -65,6 +74,10 @@
     <details class="odds"><summary>每次都有奖励 · 查看开奖概率</summary><div id="odds-list"></div><p>每次独立随机，累计结果不保证符合上述比例。</p></details>
   </section>
   <p id="message" role="alert" hidden></p>
+  <div class="lower-grid">
+    <section id="reward-section" class="panel" aria-labelledby="reward-title"><div class="section-head"><h2 id="reward-title" tabindex="-1">把金币换成喜欢</h2><span id="reward-balance" class="small"></span></div><div id="redeem-result" class="redeem-result" role="status" aria-live="polite" tabindex="-1" hidden></div><div id="rewards"></div><details id="add-details"><summary class="add-summary">＋ 添加一个奖励</summary><form id="reward-form"><label for="reward-name">奖励名称</label><input id="reward-name" placeholder="比如：看一集喜欢的剧" maxlength="100" required><label for="reward-cost">所需金币</label><input id="reward-cost" type="number" min="1" max="9007199254740991" step="1" inputmode="numeric" placeholder="20" required><button class="secondary">添加奖励</button></form></details></section>
+    <section class="panel" aria-labelledby="history-title"><div class="section-head"><h2 id="history-title">最近的完成与兑换</h2><span id="record-count" class="small">0 条记录</span></div><ul id="history"></ul><button id="more" class="secondary" hidden>查看更多记录</button></section>
+  </div>
   <details id="sound-check" class="panel">
     <summary>声音测试 · 试听声音</summary>
     <button id="sound-test" type="button" class="secondary">♪ 试听声音</button>
@@ -73,12 +86,14 @@
     <audio id="sound-sample" controls preload="none" src="./sound-check.wav" style="width:100%">此浏览器不支持音频播放器。</audio>
     <p class="muted">如果播放器也无声，可用系统浏览器打开同一地址检查。不要清除网站数据，以免丢失记录。</p>
   </details>
-  <div class="lower-grid">
-    <section class="panel" aria-labelledby="reward-title"><div class="section-head"><h2 id="reward-title">给自己的奖励</h2><span class="small">攒一点，开心一点</span></div><div id="rewards"></div><details id="add-details"><summary class="add-summary">＋ 添加一个奖励</summary><form id="reward-form"><label for="reward-name">奖励名称</label><input id="reward-name" placeholder="比如：看一集喜欢的剧" maxlength="100" required><label for="reward-cost">所需金币</label><input id="reward-cost" type="number" min="1" max="9007199254740991" step="1" inputmode="numeric" placeholder="20" required><button class="secondary">添加奖励</button></form></details></section>
-    <section class="panel" aria-labelledby="history-title"><div class="section-head"><h2 id="history-title">最近的完成与兑换</h2><span id="record-count" class="small">0 条记录</span></div><ul id="history"></ul><button id="more" class="secondary" hidden>查看更多记录</button></section>
-  </div>
   <footer>只为自己，慢慢积累。<br><span>记录保存在此浏览器 · 清除网站数据会丢失记录</span><p id="offline-status">正在准备离线使用…</p></footer>
 </main>
+<div id="quick-bar" hidden><button id="quick-bar-open" type="button" aria-controls="quick-start"><span id="quick-bar-label">＋ 现在要做什么？</span><span id="quick-bar-action" aria-hidden="true">开始 ▶</span></button></div>
+<dialog id="task-detail" aria-labelledby="detail-title">
+  <div class="section-head"><h2 id="detail-title"></h2><button id="detail-close" type="button" class="text-button" aria-label="关闭任务详情">×</button></div>
+  <div id="detail-content"></div>
+  <div class="dialog-buttons"><button id="detail-edit" type="button" class="secondary">编辑</button><button id="detail-complete" type="button" class="secondary">完成整个任务</button></div>
+</dialog>
 <dialog id="edit-dialog" aria-labelledby="edit-title">
   <h2 id="edit-title">编辑</h2>
   <form id="edit-form">
@@ -92,5 +107,5 @@
   </form>
 </dialog>
 <dialog id="redeem-dialog" aria-labelledby="redeem-title"><h2 id="redeem-title">现在兑换这份奖励？</h2><p id="redeem-description"></p><p class="muted">兑换后会扣除金币，并保留记录。</p><div class="dialog-buttons"><button id="cancel-redeem" class="secondary">再攒一会儿</button><button id="confirm-redeem" class="primary">确认兑换</button></div></dialog>
-<script type="module" src="./app.js?v=lists11"></script>
+<script type="module" src="./app.js?v=quick12"></script>
 </body></html>

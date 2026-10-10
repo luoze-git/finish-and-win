@@ -1,7 +1,7 @@
 import { REWARDS } from './config.js';
-import { transaction } from './store.js?v=lists11';
-import { sessionContext } from './core.js?v=lists11';
-import { soundEnabled, setSound, unlockSound, playSound } from './sound.js';
+import { transaction } from './store.js?v=quick12';
+import { sessionContext } from './core.js?v=quick12';
+import { soundEnabled, setSound, unlockSound, playSound } from './sound.js?v=quick12';
 import { arrive, resetJourney } from './journey.js?v=traveler6';
 const $ = id => document.getElementById(id);
 function renderSound() {
@@ -29,7 +29,7 @@ $('sound-sample').addEventListener('error', () => {
   $('sound-status').textContent = '试听文件未能加载。请确认本地服务运行后刷新页面。';
 });
 renderSound();
-let state, busy = false, arriving = false, limit = 10, pending, editing, taskTab = 'normal', sessionFormId;
+let state, busy = false, arriving = false, limit = 10, pending, editing, taskTab = 'normal', sessionFormId, quickActiveId, detailTaskId;
 const taskKindLabel = kind => ({ oneoff: '一次完成', repeatable: '可重复', ongoing: '进行中任务' }[kind]);
 function selectTab(tab) {
   taskTab = tab;
@@ -105,14 +105,115 @@ const channel = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('
 const uid = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 function node(tag, text, className) { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (className) el.className = className; return el; }
 function message(text) { $('message').textContent = text; $('message').hidden = !text; }
+function renderQuickStart() {
+  const activeId = state.active?.id ?? null;
+  if (quickActiveId !== activeId) {
+    $('quick-start').open = !state.active;
+    quickActiveId = activeId;
+  }
+  $('quick-summary').hidden = !state.active;
+  $('quick-active-hint').hidden = !state.active;
+  $('quick-save').disabled = busy;
+  $('quick-go').disabled = busy || !!state.active;
+  $('quick-bar').classList.toggle('has-active', !!state.active);
+  $('quick-bar-label').textContent = state.active ? '＋ 记下下一件事' : '＋ 现在要做什么？';
+  $('quick-bar-action').textContent = state.active ? '保存' : '开始 ▶';
+}
+function showStartedTask() {
+  resetJourney(); $('result').hidden = true;
+  $('quick-feedback').hidden = true;
+  if (state.active.kind === 'ongoing') {
+    selectTab('ongoing'); $('session-goal').focus();
+  } else { playSound('start'); $('finish').focus(); }
+  $('task-title').scrollIntoView({ block: 'start', behavior: 'instant' });
+}
+$('quick-form').addEventListener('submit', async event => {
+  event.preventDefault();
+  if (!state || busy || arriving) return;
+  // 键盘回车默认立即开始；有当前任务时则只保存，绝不替换它。
+  const startNow = event.submitter ? event.submitter.value === 'start' : !state.active;
+  if (startNow && state.active) return;
+  const taskId = uid();
+  const add = { type: 'addTask', taskId, name: $('quick-name').value, kind: 'oneoff' };
+  if (startNow) unlockSound();
+  if (await act(startNow ? [add, { type: 'startTask', taskId }] : add)) {
+    $('quick-form').reset();
+    if (startNow) showStartedTask();
+    else {
+      selectTab('normal');
+      $('quick-feedback').textContent = '已保存到普通任务';
+      $('quick-feedback').hidden = false;
+      $('quick-name').focus({ preventScroll: true });
+    }
+  }
+});
+$('quick-name').addEventListener('keydown', event => {
+  if (event.key === 'Enter' && !event.isComposing) {
+    event.preventDefault();
+    if (state && !busy && !arriving) $('quick-form').requestSubmit(state.active ? $('quick-save') : $('quick-go'));
+  }
+});
+$('quick-bar-open').addEventListener('click', () => {
+  $('quick-start').open = true;
+  $('quick-start').scrollIntoView({ block: 'center', behavior: 'instant' });
+  $('quick-name').focus({ preventScroll: true });
+});
+function updateQuickBar() {
+  const rect = $('quick-start').getBoundingClientRect();
+  const viewport = window.visualViewport;
+  const keyboard = viewport && viewport.height < window.innerHeight * .75;
+  $('quick-bar').hidden = !state || arriving || rect.bottom > 0 || !!keyboard;
+}
+new IntersectionObserver(updateQuickBar).observe($('quick-start'));
+window.addEventListener('scroll', updateQuickBar, { passive: true });
+window.addEventListener('resize', updateQuickBar);
+window.visualViewport?.addEventListener('resize', updateQuickBar);
+function openTaskDetail(taskId) {
+  if (busy || arriving) return;
+  detailTaskId = taskId; renderTaskDetail(); $('task-detail').showModal();
+}
+function renderTaskDetail() {
+  const task = state.tasks.find(t => t.id === detailTaskId);
+  if (!task) { $('task-detail').close(); return; }
+  $('detail-title').textContent = task.name;
+  const content = $('detail-content'); content.replaceChildren();
+  content.append(node('p', taskKindLabel(task.kind), 'muted'));
+  if (task.kind === 'ongoing') {
+    const { latest, count } = sessionContext(state.history, task.id);
+    content.append(node('p', `已推进 ${count} 次${latest ? ' · 上次：' + ago(latest.at) : ' · 尚未开始'}`, 'muted'));
+    for (const record of state.history.filter(r => r.type === 'progress' && r.taskId === task.id)) {
+      const section = node('section', undefined, 'detail-session');
+      section.append(node('small', new Date(record.at).toLocaleString('zh-CN') + (record.outcome === 'paused' ? ' · 暂停' : ' · 推进')));
+      for (const [key, label] of [['goal', '小目标'], ['note', '做到哪里'], ['nextStep', '下一步']]) {
+        if (record[key]) section.append(node('p', label + '：' + record[key], 'session-note'));
+      }
+      content.append(section);
+    }
+  }
+  $('detail-edit').disabled = busy;
+  $('detail-complete').hidden = task.kind !== 'ongoing';
+  $('detail-complete').disabled = busy || state.active?.taskId === task.id;
+}
+$('detail-close').addEventListener('click', () => $('task-detail').close());
+$('detail-edit').addEventListener('click', () => {
+  const task = state.tasks.find(t => t.id === detailTaskId);
+  if (task && !busy && !arriving) { $('task-detail').close(); openEditor('task', task); }
+});
+$('detail-complete').addEventListener('click', async () => {
+  if (busy || arriving || !confirm('确认整件事情已经完成？此操作会归档任务，不额外开奖。')) return;
+  if (await act({ type: 'completeTask', taskId: detailTaskId })) $('task-detail').close();
+});
 function render() {
   if (arriving) { $('finish').disabled = true; $('finish-session').disabled = true; $('pause-session').disabled = true; return; }
   $('balance').textContent = state.balance.toLocaleString('zh-CN');
-  $('list-tip').hidden = !!state.active; $('active-task').hidden = !state.active;
-  $('task-title').textContent = state.active ? '就做这一件' : '下一件小事';
+  $('active-task').hidden = !state.active;
+  renderQuickStart();
+  updateQuickBar();
+  $('task-title').textContent = state.active ? '现在正在做' : '现在，做一件小事';
   const ongoing = state.active?.kind === 'ongoing';
   const preparing = ongoing && state.active.status === 'preparing';
   $('task-status').textContent = preparing ? '准备这次推进' : state.active ? '进行中' : '准备开始';
+  $('task-status').hidden = true;
   $('active-name').textContent = state.active?.name ?? '';
   $('first-tip').hidden = !!state.active || state.history.some(x => x.type === 'finish');
   $('finish').disabled = busy;
@@ -145,45 +246,43 @@ function render() {
   for (const task of tasks) {
     const row = node('div', undefined, 'reward-row');
     const copy = node('div', undefined, 'row-copy');
-    copy.append(node('strong', task.name), node('small', taskKindLabel(task.kind)));
+    const title = node('strong', task.name);
+    copy.append(title);
+    if (task.kind === 'repeatable') {
+      const repeat = node('span', ' ↻', 'repeat-mark');
+      repeat.setAttribute('role', 'img'); repeat.setAttribute('aria-label', '可重复'); title.append(repeat);
+    }
     if (task.kind === 'ongoing') {
-      const { latest, count } = sessionContext(state.history, task.id);
-      copy.append(node('p', '下一步：' + (latest?.nextStep || '继续时，先定一个小目标'), 'next-step'));
-      if (latest?.note) copy.append(node('p', '上次停在：' + latest.note, 'session-note'));
-      copy.append(node('small', `${latest ? '上次' + (latest.outcome === 'paused' ? '停下' : '推进') + '：' + ago(latest.at) : '尚未开始'} · 已推进 ${count} 次`));
+      const { latest } = sessionContext(state.history, task.id);
+      copy.append(node('p', latest ? (latest.nextStep ? '→ ' + latest.nextStep : '→ 接着上次的小目标') : '尚未开始', 'task-next'));
     }
     const actions = node('div', undefined, 'row-actions');
-    const start = node('button', task.kind === 'ongoing' && sessionContext(state.history, task.id).latest ? '继续' : '开始', 'secondary');
+    const start = node('button', '▶', 'secondary task-play');
+    start.setAttribute('aria-label', (task.kind === 'ongoing' && sessionContext(state.history, task.id).latest ? '继续：' : '开始：') + task.name);
     start.type = 'button'; start.disabled = busy || !!state.active;
     start.addEventListener('click', async () => {
       unlockSound();
       if (await act({ type: 'startTask', taskId: task.id })) {
-        resetJourney(); $('result').hidden = true;
-        if (task.kind === 'ongoing') { selectTab('ongoing'); $('session-goal').focus(); }
-        else { playSound('start'); $('finish').focus(); }
+        showStartedTask();
       }
     });
-    const edit = node('button', '编辑', 'text-button');
-    edit.type = 'button'; edit.disabled = busy; edit.setAttribute('aria-label', '编辑任务：' + task.name);
-    edit.addEventListener('click', () => openEditor('task', task));
-    actions.append(start, edit);
-    if (task.kind === 'ongoing') {
-      const complete = node('button', '完成整个任务', 'text-button');
-      complete.disabled = busy;
-      complete.addEventListener('click', async () => {
-        if (!confirm('确认整件事情已经完成？此操作会归档任务，不额外开奖。')) return;
-        if (await act({ type: 'completeTask', taskId: task.id })) message('整个任务已完成，记录已保存。');
-      });
-      actions.append(complete);
-    }
+    const more = node('button', '•••', 'text-button task-more');
+    more.type = 'button'; more.disabled = busy;
+    more.setAttribute('aria-label', '详情与更多操作：' + task.name);
+    more.addEventListener('click', () => openTaskDetail(task.id));
+    actions.append(start, more);
     row.append(copy, actions); $('task-list').append(row);
   }
+  $('reward-balance').textContent = state.balance + ' ✦ 可用';
   $('rewards').replaceChildren();
   if (!state.rewards.length) $('rewards').append(node('p', '还没有奖励。添一件你期待的小事吧。', 'empty'));
   for (const reward of state.rewards) {
-    const row = node('div', undefined, 'reward-row'); const copy = node('div', undefined, 'row-copy');
-    copy.append(node('strong', reward.name), node('small', `${reward.cost} 金币 · ${reward.repeatable ? '可重复' : '不可重复'}`));
-    const button = node('button', state.balance >= reward.cost ? '兑换' : `还差 ${reward.cost - state.balance}`, 'secondary');
+    const affordable = state.balance >= reward.cost;
+    const row = node('div', undefined, 'reward-row reward-card ' + (affordable ? 'can-redeem' : 'not-yet'));
+    const copy = node('div', undefined, 'row-copy');
+    copy.append(node('strong', reward.name), node('small', reward.cost + ' ✦'));
+    const button = node('button', affordable ? '兑换 ✦' : '还差 ' + (reward.cost - state.balance) + ' ✦', 'secondary');
+    button.setAttribute('aria-label', affordable ? '兑换：' + reward.name + '，花费 ' + reward.cost + ' 金币' : reward.name + '，还差 ' + (reward.cost - state.balance) + ' 金币');
     button.disabled = busy || state.balance < reward.cost;
     button.addEventListener('click', () => {
       pending = { type: 'redeem', id: reward.id, revision: reward.revision, requestId: uid() };
@@ -191,7 +290,7 @@ function render() {
       $('redeem-dialog').showModal(); $('cancel-redeem').focus();
     });
     const actions = node('div', undefined, 'row-actions');
-    const edit = node('button', '编辑', 'text-button');
+    const edit = node('button', '•••', 'text-button');
     edit.disabled = busy; edit.setAttribute('aria-label', '编辑奖励：' + reward.name);
     edit.addEventListener('click', () => openEditor('reward', reward));
     actions.append(button, edit); row.append(copy, actions); $('rewards').append(row);
@@ -213,6 +312,7 @@ function render() {
     $('history').append(row);
   }
   $('more').hidden = state.history.length <= limit;
+  if ($('task-detail').open) renderTaskDetail();
 }
 async function refresh() { if (busy || arriving) return; try { state = await transaction(); render(); } catch (error) { message(error.message); } }
 async function act(action) {
@@ -221,7 +321,11 @@ async function act(action) {
   try {
     state = await transaction(action); channel?.postMessage('changed');
     return true;
-  } catch (error) { message(error.message); return false; }
+  } catch (error) {
+    // 另一标签页可能已修改任务或奖励；失败后重新读取，下一次操作使用最新版本。
+    try { state = await transaction(); } catch { /* 保留原始错误。 */ }
+    message(error.message); return false;
+  }
   finally { busy = false; $('confirm-redeem').disabled = false; if (state) render(); }
 }
 for (const tab of ['normal', 'ongoing']) {
@@ -241,7 +345,7 @@ async function finishExecution(type = 'finish') {
   unlockSound();
   const id = state?.active?.id;
   if (!id) return;
-  arriving = true;
+  arriving = true; updateQuickBar();
   if (!(await act({ type, id, note: $('session-note').value, nextStep: $('session-next').value }))) { arriving = false; render(); return; }
   const result = state.history.find(x => x.id === id);
   try { await arrive(); } catch { /* 动画失败也必须展示已保存的奖励。 */ } finally { arriving = false; render(); }
@@ -273,13 +377,28 @@ $('reward-form').addEventListener('submit', async event => {
 });
 $('cancel-redeem').addEventListener('click', () => $('redeem-dialog').close());
 $('redeem-dialog').addEventListener('close', () => { pending = null; });
+$('wallet-rewards').addEventListener('click', () => {
+  $('reward-title').focus({ preventScroll: true });
+  $('reward-section').scrollIntoView({ block: 'start', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+});
 $('confirm-redeem').addEventListener('click', async () => {
-  if (!pending) return;
+  if (!pending || busy || arriving) return;
   unlockSound();
-  const success = await act(pending);
-  if (success) playSound('redeem');
+  const request = pending;
+  const success = await act(request);
   $('redeem-dialog').close();
-  if (success) { $('result').hidden = false; $('result').replaceChildren(node('strong', '兑换成功'), node('p', '金币已扣除，去享受你的奖励吧。')); }
+  if (!success) return;
+  void playSound('redeem');
+  const record = state.history.find(r => r.id === request.requestId);
+  const before = state.balance - record.coins;
+  const feedback = $('redeem-result');
+  feedback.replaceChildren(node('span', '✦ 兑换成功', 'redeem-heading'), node('strong', record.name),
+    node('p', record.coins + ' ✦ · 余额 ' + before + ' → ' + state.balance + ' ✦', 'redeem-cost'), node('p', '去享受你的奖励吧。'));
+  feedback.hidden = false;
+  feedback.classList.remove('redeemed'); void feedback.offsetWidth; feedback.classList.add('redeemed');
+  $('balance').classList.remove('spent'); void $('balance').offsetWidth; $('balance').classList.add('spent');
+  feedback.focus({ preventScroll: true });
+  feedback.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
 });
 $('more').addEventListener('click', () => { limit += 10; render(); });
 for (const r of REWARDS) { const el = node('div', undefined, 'odds-list-item'); el.append(node('strong', `${r.coins} 金币`), node('div', `${r.weight}%`)); $('odds-list').append(el); }
